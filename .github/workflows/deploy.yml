@@ -1,0 +1,44 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write' # Wymagane dla Workload Identity Federation
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Autentykacja w Google Cloud (bez kluczy JSON, bezpieczniej przez WIF)
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+          service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
+
+      # 2. Logowanie do Artifact Registry
+      - name: 'Docker Auth'
+        uses: 'docker/login-action@v3'
+        with:
+          registry: 'europe-west1-docker.pkg.dev' # Dostosuj do swojego regionu
+          username: 'oauth2accesstoken'
+          password: '${{ steps.auth.outputs.auth_token }}'
+
+      # 3. Budowanie i push obrazu
+      - name: 'Build and Push'
+        run: |
+          IMAGE="europe-west1-docker.pkg.dev/my-project/my-repo/my-service:${{ github.sha }}"
+          docker build -t "$IMAGE" ./backend
+          docker push "$IMAGE"
+
+      # 4. Deploy do Cloud Run
+      - uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: 'my-service-name'
+          region: 'europe-west1'
+          image: 'europe-west1-docker.pkg.dev/my-project/my-repo/my-service:${{ github.sha }}'
