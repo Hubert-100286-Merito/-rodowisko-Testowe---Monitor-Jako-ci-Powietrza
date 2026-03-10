@@ -1,6 +1,5 @@
 name: CI Monitor Jakości Powietrza
 
-# Wyzwalacz: uruchamiaj przy każdym pushu i PR na główne gałęzie 
 on:
   push:
     branches: [ main, develop ]
@@ -23,11 +22,12 @@ jobs:
       - name: Instalacja lintera (flake8)
         run: pip install flake8
 
-      - [cite_start]name: Linting - sprawdzanie czystości kodu [cite: 143]
+      - name: Linting - sprawdzanie czystości kodu
         run: |
-          # Sprawdza krytyczne błędy w folderze backend
+          # Sprawdza krytyczne błędy w folderze backend 
           flake8 backend/ --count --select=E9,F63,F7,F82 --show-source --statistics
 
-      - [cite_start]name: Testowe budowanie obrazów Docker [cite: 45, 143]
+      - name: Testowe budowanie obrazów Docker
         run: |
+          # Weryfikacja RNF-02 (uruchomienie lokalne przez Docker Compose) [cite: 45, 143]
           docker-compose build
