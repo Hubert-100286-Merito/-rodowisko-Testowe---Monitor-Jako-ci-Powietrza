@@ -30,4 +30,4 @@ jobs:
       - name: Testowe budowanie obrazów Docker
         run: |
           # Weryfikacja RNF-02 (uruchomienie lokalne przez Docker Compose) [cite: 45, 143]
-          docker-compose build
+          docker compose build
